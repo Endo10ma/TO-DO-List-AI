@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AI To-Do (Simple)</title>
+<style>
+body{font-family:sans-serif;background:#0f172a;color:#eee;display:grid;place-items:center;height:100vh;margin:0}
+.card{background:#111827;border:1px solid #333;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.5);padding:20px;width:min(600px,90vw)}
+h1{margin-top:0}
+input,button{padding:8px;margin:4px;border-radius:6px;border:none}
+input{flex:1}
+button{cursor:pointer}
+#taskList li{margin:6px 0;padding:6px;border:1px solid #444;border-radius:6px}
+.done{text-decoration:line-through;opacity:.7}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>AI To-Do (Simple)</h1>
+<div style="display:flex;gap:6px"><input id="taskInput" placeholder="Task"/><button id="addBtn">Add</button></div>
+<ul id="taskList"></ul>
+<hr/>
+<div style="display:flex;gap:6px"><input id="chatInput" placeholder="Chat with AI"/><button id="chatSend">Send</button></div>
+<div id="chatReply" style="margin-top:8px;color:#ccc"></div>
+</div>
+<script>
+const taskInput=document.getElementById('taskInput');const taskList=document.getElementById('taskList');
+const addBtn=document.getElementById('addBtn');const chatInput=document.getElementById('chatInput');const chatSend=document.getElementById('chatSend');
+const chatReply=document.getElementById('chatReply');
+async function loadTasks(){let r=await fetch('/api/tasks');let d=await r.json();taskList.innerHTML='';d.tasks.forEach(t=>{let li=document.createElement('li');li.textContent=t.description;if(t.completed)li.classList.add('done');taskList.appendChild(li)});}
+async function addTask(){let desc=taskInput.value.trim();if(!desc)return;await fetch('/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({description:desc})});taskInput.value='';loadTasks();}
+addBtn.onclick=addTask;
+async function sendChat(){let msg=chatInput.value.trim();if(!msg)return;let r=await fetch('/api/brain/execute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})});let d=await r.json();chatReply.textContent=d.reply||d?.result?.error||'OK';loadTasks();chatInput.value='';}
+chatSend.onclick=sendChat;
+loadTasks();
+</script>
+</body>
+</html>
